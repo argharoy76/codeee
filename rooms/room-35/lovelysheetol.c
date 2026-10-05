@@ -1,1 +1,1 @@
-son ami 
+son ami ektu pore tore 
