@@ -1,1 +1,0 @@
-__STDC_NO_ATOMICS__
