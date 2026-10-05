@@ -1,3 +1,3 @@
 naim> ok?
 lekh baba kichu
-ok 
+ok vai
