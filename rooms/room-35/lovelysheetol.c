@@ -1,1 +1,1 @@
-naim
+__STDC_NO_ATOMICS__
