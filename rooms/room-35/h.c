@@ -33,7 +33,6 @@ int main() {
             left++;
         }
 
-        // If the window is valid and non-empty
         if (left <= right) {
             max_len = max(max_len, right - left + 1);
         }
