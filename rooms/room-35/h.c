@@ -22,12 +22,10 @@ int main() {
     long long current_odd_sum = 0;
 
     for (int right = 0; right < n; ++right) {
-        // Only odd numbers contribute to the sum
         if (a[right] % 2 != 0) {
             current_odd_sum += a[right];
         }
 
-        // Shrink the window until the odd sum is <= S
         while (current_odd_sum > s && left <= right) {
             if (a[left] % 2 != 0) {
                 current_odd_sum -= a[left];
