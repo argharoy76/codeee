@@ -40,3 +40,8 @@ In the second sample, every element is odd and strictly greater than S = 5 (7 > 
 least 7, which exceeds 5. Hence no non-empty subarray is valid, and the answer is 0.
 
 7
+
+
+
+
+
