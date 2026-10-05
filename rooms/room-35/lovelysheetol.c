@@ -1,2 +1,1 @@
-sabbas betta
-son
+sabbas betta ji
