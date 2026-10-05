@@ -1,3 +1,1 @@
-naim> ok?
-lekh baba kichu
-ok vai
+sabbas betta
