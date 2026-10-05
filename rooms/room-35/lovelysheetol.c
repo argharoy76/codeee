@@ -1,89 +1,42 @@
-son ami ektu pore tore txt dicchi oita solve kore dibi ai diye
-ok?
-ok bhai
-Problem A
-
-Misty’s Mishti Dilemma
-Time limit: 2 seconds  Memory limit: 512 MB
-
-Misty has a massive sweet tooth. To satisfy his cravings, he sends his juniors out to buy mishti
-(sweets) from the famous Satkhira Ghosh Dairy in Khulna. But there is a catch: the city is
-filled with competitor shops trying to use the same brand value (like Adi Satkhira Ghosh Dairy,
-Shatkhira Vagyakul Ghosh Dairy, etc.)!
-Since the juniors did not coordinate among themselves, they visited different shops and brought
-back N mishtis in total. Unfortunately, many of the sweets turned out to be the exact same
-flavor. Every distinct flavor of mishti has a unique “sweetness level”, which can be measured as
-a non-negative integer.
-Misty is a very particular food critic. He wants to taste each flavor exactly once. If there
-are duplicate mishtis with the exact same sweetness level, he keeps just one for himself and
-generously gives all the identical extras to his friend, Bristy.
-After distributing the extras, Misty is left with a collection of strictly distinct mishtis. To
-determine the “Ultimate Sweetness Score” of his tasting session, Misty combines the sweetness
-levels of all the mishtis he kept using the legendary computer science operation: bitwise XOR.
-Given the sweetness levels of the N mishtis the juniors originally brought, help Misty find the
-Ultimate Sweetness Score!
+Subarray Odd Sum
+Time limit: 1 second • Memory limit: 256 MB
+You are given an array A consisting of N integers and an integer S.
+Your task is to find the maximum length of a contiguous subarray such that the sum of all odd
+numbers within that subarray does not exceed S.
+Note that even numbers within the subarray do not contribute to the odd sum constraint, but
+they are included in the length of the subarray. If a subarray has a sum of odd elements greater
+than S, it is considered invalid.
 Input
-The first line of the input contains a single integer N (1 ≤ N ≤ 5 · 105
+The first line contains two integers N and S (1 ≤ N ≤ 2 · 105
 
-), the total number of
+, 0 ≤ S ≤ 1014), the number of
 
-mishtis the juniors brought back.
-The second line contains N space-separated integers A1, A2, . . . , AN (0 ≤ Ai ≤ 1018), the
-sweetness levels of the mishtis.
+elements in the array and the maximum allowed sum of odd elements.
+The second line contains N integers A1, A2, . . . , AN (1 ≤ Ai ≤ 109
+).
+
 Output
-Print a single integer: the bitwise XOR of all the distinct sweetness levels in Misty’s collection.
-If only one distinct mishti remains, the answer is simply the sweetness level of that mishti.
+Print a single integer representing the maximum length of a contiguous subarray whose sum of
+odd elements is less than or equal to S.
+If there is no valid subarray, print 0.
 Examples
 Sample Input 1 Sample Output 1
-5
-4 1 4 2 1
+5 10
+2 5 3 4 1
 
-7
+5
 
 Sample Input 2 Sample Output 2
-6
-1 2 3 4 5 6
+3 5
+7 9 11
+
+0
+
+Notes
+In the first sample, consider the entire array [2, 5, 3, 4, 1]. The odd elements are 5, 3, and 1, and
+their sum is 5 + 3 + 1 = 9. Since 9 ≤ 10, the entire array is valid, and its length is 5.
+In the second sample, every element is odd and strictly greater than S = 5 (7 > 5, 9 > 5,
+11 > 5). Any non-empty subarray contains at least one of these elements, so its odd sum is at
+least 7, which exceeds 5. Hence no non-empty subarray is valid, and the answer is 0.
 
 7
-
-Sample Input 3 Sample Output 3
-3
-10 10 10
-
-10
-
-2
-
-Problem Set
-solve kora
-
-#include <iostream>
-#include <set>
-using namespace std;
-
-int main()
-{
-    int n;
-    cin >> n;
-
-    set<long long> s;
-
-    for (int i = 0; i < n; i++)
-    {
-        long long x;
-        cin >> x;
-        s.insert(x);
-    }
-
-    long long ans = 0;
-
-    for (long long x : s)
-    {
-        ans = ans ^ x;
-    }
-
-    cout << ans << endl;
-
-    return 0;
-}
-
