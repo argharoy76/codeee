@@ -55,3 +55,4 @@ Sample Input 3 Sample Output 3
 2
 
 Problem Set
+solve kora
