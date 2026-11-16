@@ -1,12 +1,12 @@
 {
   "v": 1,
-  "hostId": "client-abc4a3d699c08b174eb4b635",
+  "hostId": "client-d7ca283a996beb7d52f0c68f",
   "hostName": "argha",
   "hostIps": [
-    "192.168.0.199"
+    "192.168.0.200"
   ],
   "port": 8765,
-  "secret": "fed34a27c0cacf05a8d2555dae84311a9570385f6c76cad1",
-  "startedAt": 1793681959478,
-  "updatedAt": 1793696948668
+  "secret": "ef1add231e6175797dcf654a8b042fe4cfd290197907a6f2",
+  "startedAt": 1794854347383,
+  "updatedAt": 1794854347383
 }
