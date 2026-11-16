@@ -1,0 +1,233 @@
+/*
+ * Start page (templates/landing.html) and the sign-in pages
+ * (templates/driver_login.html, templates/student_login.html).
+ * Each option / form takes its colour from content/user_types.py through --accent.
+ */
+
+body {
+    background: var(--bp-page-bg);
+}
+
+.lp {
+    --accent: var(--bp-brand);
+    min-height: 100dvh;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    padding: max(48px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    color: var(--bp-text);
+}
+
+/* ---- Start page ---- */
+.lp-brand {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px 0 40px;
+}
+.lp-title {
+    margin: 20px 0 0;
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+.lp-subtitle {
+    margin: 6px 0 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--bp-muted);
+}
+
+.lp-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.lp-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 64px;
+    padding: 12px 16px;
+    background: #ffffff;
+    border: 1px solid #e3e8ef;
+    border-radius: 14px;
+    color: var(--bp-text);
+    text-decoration: none;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+.lp-option:hover {
+    border-color: color-mix(in srgb, var(--accent) 45%, #e3e8ef);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+.lp-option:active { transform: scale(0.99); }
+.lp-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.lp-option-icon {
+    width: 40px;
+    height: 40px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 11%, #ffffff);
+    color: var(--accent);
+}
+.lp-option-icon .bp-icon { width: 22px; height: 22px; }
+.lp-option-label {
+    flex: 1;
+    font-size: 1.05rem;
+    font-weight: 650;
+}
+.lp-option-chevron {
+    width: 18px;
+    height: 18px;
+    color: #94a3b8;
+}
+
+/* ---- Sign-in pages ---- */
+.lp-form-page { padding-top: max(16px, env(safe-area-inset-top)); }
+
+.lp-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+}
+.lp-back {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    margin-left: -8px;
+    border-radius: 10px;
+    color: #334155;
+}
+.lp-back:hover { background: #e9edf3; }
+
+.lp-form-title {
+    margin: 28px 0 24px;
+    font-size: 1.65rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.lp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.lp-field {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.lp-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+}
+.lp-input {
+    width: 100%;
+    height: 50px;
+    padding: 0 14px;
+    background: #ffffff;
+    border: 1px solid #d5dce6;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--bp-text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.lp-input::placeholder { color: #9aa6b6; }
+.lp-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.lp-select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 40px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+}
+
+.lp-submit {
+    height: 52px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #ffffff;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.15s, transform 0.1s;
+}
+.lp-submit:hover { filter: brightness(0.94); }
+.lp-submit:active { transform: scale(0.99); }
+
+.lp-error {
+    display: none;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Driver name suggestions (built by driver_login.html) */
+.fluid-autocomplete-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    max-height: 260px;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #d5dce6;
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+.fluid-autocomplete-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+}
+.fluid-autocomplete-row + .fluid-autocomplete-row { border-top: 1px solid #f1f4f8; }
+.fluid-autocomplete-row:hover { background: #f6f8fb; }
+.row-driver-name { font-weight: 600; color: var(--bp-text); }
+.row-route-pill {
+    flex: none;
+    max-width: 55%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--bp-muted);
+}
+
+@media (min-width: 900px) {
+    .lp { padding-top: 72px; }
+    .lp-brand { flex: none; padding-bottom: 48px; }
+}

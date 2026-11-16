@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% from "_ui.html" import logo, icon with context %}
+{% set t = words("login_pages") %}
+{# Sign-in page for every rider type (portal = its key, e.g. "student"; portal_info = its settings from content/user_types.py). #}
+
+{% block title %}{{ tab_title(t("{who} login", who=portal_info.label)) }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="lp lp-form-page" style="--accent: {{ portal_info.color }}">
+    <header class="lp-topbar">
+        <a href="{{ url_for('views.landing') }}" class="lp-back" aria-label="{{ t("Back") }}">{{ icon("back") }}</a>
+        {{ logo("sm") }}
+    </header>
+
+    <h1 class="lp-form-title">{{ t("{who} login", who=portal_info.label) }}</h1>
+
+    <div id="login-error-box" class="lp-error" role="alert"></div>
+
+    <form id="student-login-form" class="lp-form" novalidate>
+        <label class="lp-field">
+            <span class="lp-label">{{ t("Name") }}</span>
+            <input type="text" id="input-student-name" class="lp-input" placeholder="{{ t("Enter your name") }}" autocomplete="name" required autofocus>
+        </label>
+        <label class="lp-field">
+            <span class="lp-label">{{ portal_info.id_label }}</span>
+            <input type="text" id="input-student-id" class="lp-input" placeholder="{{ portal_info.id_label }}" autocomplete="off" required>
+        </label>
+        <button type="submit" class="lp-submit">{{ t("See map") }}</button>
+    </form>
+</div>
+
+<script>
+    const PORTAL = {{ portal | tojson }};               // rider type key, e.g. "student"
+    const KEY_ID = `busplus_${PORTAL}_id`;
+    const KEY_NAME = `busplus_${PORTAL}_name`;
+    const form = document.getElementById("student-login-form");
+    const inputName = document.getElementById("input-student-name");
+    const inputId = document.getElementById("input-student-id");
+    const errorBox = document.getElementById("login-error-box");
+
+    // Pre-populate if previously entered, without auto-redirecting
+    try {
+        if (localStorage.getItem(KEY_NAME)) inputName.value = localStorage.getItem(KEY_NAME);
+        if (localStorage.getItem(KEY_ID)) inputId.value = localStorage.getItem(KEY_ID);
+    } catch (e) { /* private mode */ }
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fullName = inputName.value.trim();
+        const riderId = inputId.value.trim();
+        if (!fullName || !riderId) {
+            showError({{ t("Please enter your name and ID.") | tojson }});
+            return;
+        }
+        try {
+            const resp = await fetch(`/api/auth/${PORTAL}/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ full_name: fullName, rider_id: riderId })
+            });
+            const data = await resp.json();
+            if (!data.success) {
+                showError(data.message || {{ t("Login failed. Please try again.") | tojson }});
+                return;
+            }
+            // Remember name and ID on this phone so the form is filled in next time
+            try {
+                localStorage.setItem(KEY_ID, riderId);
+                localStorage.setItem(KEY_NAME, fullName);
+            } catch (e) { /* private mode */ }
+            window.location.href = data.redirect_url;
+        } catch (err) {
+            showError({{ t("Connection error. Please check your internet and try again.") | tojson }});
+        }
+    });
+
+    function showError(message) {
+        errorBox.textContent = message;
+        errorBox.style.display = "block";
+    }
+</script>
+{% endblock %}

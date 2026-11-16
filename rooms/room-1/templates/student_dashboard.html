@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% from "_ui.html" import logo, icon with context %}
+{% set t = words("rider_map") %}
+
+{% block title %}{{ tab_title(t("{who} map", who=portal_info.label)) }}{% endblock %}
+
+{% block js_words %}{{ page_words("rider_map", "map", "bus_schedule") | tojson }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+{% include "_map_assets.html" %}
+{% endblock %}
+
+{% block content %}
+<!-- Live map for every rider type (audience = the type's key; it decides which buses are shown) -->
+<div class="phone-map-app">
+    <!-- 1. Fullscreen Interactive Google Map -->
+    <div id="student-map"></div>
+
+    <!-- Menu Backdrop (tap outside the menu to close it) -->
+    <div id="side-menu-backdrop" class="side-menu-backdrop" onclick="closeSideMenu()"></div>
+
+    <!-- BusPlus Menu: drops down from under the bus icon -->
+    <aside id="side-menu-drawer" class="side-menu-drawer" data-page="main" aria-label="{{ t("Menu") }}" aria-hidden="true">
+        <!-- Small top menu: just the app name and the rider's ID -->
+        <div class="side-menu-header">
+            <span class="side-menu-title">{{ brand.APP_NAME }}</span>
+            <span class="side-id-val" id="side-student-id">{{ rider_id }}</span>
+        </div>
+
+        <!-- Page 1: Main menu with two options -->
+        <div class="side-menu-page side-page-main" id="side-page-main">
+            <button type="button" class="side-menu-option" onclick="showMenuPage('home')">
+                <span class="side-option-icon">{{ icon("home") }}</span>
+                <span class="side-option-text">
+                    <span class="side-option-title">{{ t("Home") }}</span>
+                </span>
+                <span class="side-option-chevron">›</span>
+            </button>
+            <button type="button" class="side-menu-option" onclick="showMenuPage('notification')">
+                <span class="side-option-icon">{{ icon("bell") }}</span>
+                <span class="side-option-text">
+                    <span class="side-option-title">{{ t("Notification") }}</span>
+                </span>
+                <span class="side-option-chevron">›</span>
+            </button>
+            <button type="button" class="side-menu-option" onclick="openBusSchedule()">
+                <span class="side-option-icon">{{ icon("clock") }}</span>
+                <span class="side-option-text">
+                    <span class="side-option-title">{{ t("Bus schedule") }}</span>
+                </span>
+                <span class="side-option-chevron">›</span>
+            </button>
+        </div>
+
+        <!-- Page 2: Edit Home -->
+        <div class="side-menu-page side-page-edit" id="side-page-home">
+            <div class="side-page-header">
+                <button type="button" class="side-back-btn" onclick="showMenuPage('main')" aria-label="{{ t("Back") }}">‹</button>
+                <span class="side-page-title">{{ t("Home") }}</span>
+            </div>
+            <div class="side-page-body">
+                <div class="side-menu-section side-address-wrap">
+                    <label class="side-section-label" for="side-home-address-input">{{ t("Home address") }}</label>
+                    <input type="text" id="side-home-address-input" class="side-text-input" maxlength="120"
+                           placeholder="{{ t("Start typing a stop name") }}" autocomplete="off"
+                           role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="side-home-suggestions">
+                    <div id="side-home-suggestions" class="side-suggestions" role="listbox"></div>
+                </div>
+                <button type="button" class="side-save-btn" onclick="saveHomeAddress()">{{ t("Save") }}</button>
+            </div>
+        </div>
+
+        <!-- Page 3: Edit Notification -->
+        <div class="side-menu-page side-page-edit" id="side-page-notification">
+            <div class="side-page-header">
+                <button type="button" class="side-back-btn" onclick="showMenuPage('main')" aria-label="{{ t("Back") }}">‹</button>
+                <span class="side-page-title">{{ t("Notification") }}</span>
+            </div>
+            <div class="side-page-body">
+                <div class="side-menu-section">
+                    <label class="side-section-label" for="side-custom-minutes-input">{{ t("Notify me") }}</label>
+                    <div class="side-minutes-box">
+                        <input type="number" id="side-custom-minutes-input" class="side-minutes-input"
+                               min="1" max="{{ map_config.alertMinutesMax }}" step="1" inputmode="numeric" placeholder="5">
+                        <span class="side-minutes-unit">{{ t("minutes before the bus arrives") }}</span>
+                    </div>
+                    <div id="side-minutes-hint" class="side-minutes-hint" aria-live="polite"></div>
+                </div>
+                <div class="side-menu-section">
+                    <label class="side-section-label" for="side-frequency-select">{{ t("Repeat") }}</label>
+                    <select id="side-frequency-select" class="side-select-control" onchange="changeAlertFrequency(this.value)">
+                        <option value="1">{{ t("Once") }}</option>
+                        <option value="2">{{ t("{count} times", count=2) }}</option>
+                        <option value="3">{{ t("{count} times", count=3) }}</option>
+                        <option value="continuous">{{ t("Until the bus arrives") }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 2. Floating Top Bar -->
+    <div class="phone-top-bar">
+        <div class="top-bar-row">
+            <!-- Icon-Only Trigger Button (Just the icon, NO text!) -->
+            <button id="btn-busplus-icon" class="busplus-icon-btn busplus-brand" onclick="toggleSideMenu()" title="{{ t("Menu") }}" aria-label="{{ t("Menu") }}" aria-expanded="false" aria-controls="side-menu-drawer">
+                {{ logo("sm") }}
+                <span class="brand-name">{{ brand.APP_NAME }}</span>
+            </button>
+
+            <!-- Top Right Direct Log Out Button -->
+            <button class="logout-pill-btn" onclick="logoutStudent()" title="{{ t("Log out") }}">
+                {{ t("Log out") }}
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. Minimal Clean GPS Floating Action Button (rides just above the bottom sheet) -->
+    <button id="btn-locate-me" class="phone-locate-fab" title="{{ t("Show my location") }}">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22"/></svg><span>{{ t("Locate me") }}</span>
+    </button>
+
+    <!-- 4. Bottom Sheet: drag up/down like Google Maps -->
+    <section id="bus-sheet" class="bus-sheet" data-snap="peek" aria-label="{{ t("Buses") }}">
+        <!-- Drag area: handle + route search + header -->
+        <div class="bus-sheet-drag" id="bus-sheet-drag">
+            <button type="button" class="bus-sheet-grabber" id="bus-sheet-grabber" aria-label="{{ t("Expand or collapse") }}">
+                <span class="bus-sheet-handle"></span>
+            </button>
+
+            <!-- Select route: type any letter of a route name, pick it from the drop-down -->
+            <div class="route-search" id="route-search">
+                <label class="route-search-label" for="route-search-input">{{ t("Select route") }}</label>
+                <div class="route-search-box">
+                    <span class="route-search-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span>
+                    <span class="route-search-swatch" id="route-search-swatch" hidden></span>
+                    <input type="text" id="route-search-input" class="route-search-input"
+                           placeholder="{{ t("Route name") }}" autocomplete="off" spellcheck="false"
+                           role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="route-search-dropdown">
+                    <button type="button" class="route-search-clear" id="route-search-clear" aria-label="{{ t("Clear route") }}" hidden>✕</button>
+                </div>
+                <div class="route-search-dropdown" id="route-search-dropdown" role="listbox"></div>
+            </div>
+
+            <div class="bus-sheet-header">
+                <button type="button" class="bus-sheet-back" id="bus-sheet-back" aria-label="{{ t("Back") }}" hidden>‹</button>
+                <div class="bus-sheet-titles">
+                    <div class="bus-sheet-title-row"><div class="bus-sheet-title" id="bus-sheet-title">{{ t("All buses") }}</div><span class="bus-sheet-count" id="bus-sheet-count"></span></div>
+                </div>
+            </div>
+
+            <!-- Your Home stop arrival line -->
+            <div class="bus-sheet-home" id="bus-sheet-home" hidden>
+                <span class="bus-sheet-home-icon">{{ icon("home") }}</span>
+                <span class="bus-sheet-home-text" id="bus-sheet-home-text"></span>
+                <span class="bus-sheet-home-eta" id="bus-sheet-home-eta"></span>
+            </div>
+        </div>
+
+        <!-- Scrollable list: all buses, the selected route's buses, or one bus's details -->
+        <div class="bus-sheet-content" id="bus-sheet-content"></div>
+    </section>
+
+    {% include "_schedule_popup.html" %}
+
+    <!-- Pop-up messages (bus selected, arrival alerts, ...) -->
+    <div id="toast-container"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Which rider type is using the map, e.g. "student" (each type only sees its own buses)
+    const AUDIENCE = {{ audience | tojson }};
+
+    // Remember the login on this device (tojson keeps names like O'Brien intact)
+    try {
+        localStorage.setItem(`busplus_${AUDIENCE}_id`, {{ rider_id | tojson }});
+        localStorage.setItem(`busplus_${AUDIENCE}_name`, {{ rider_name | tojson }});
+    } catch (e) { /* private mode */ }
+
+    // Pass backend data to client
+    window.APP_DATA = {
+        audience: AUDIENCE,
+        routes: {{ routes | tojson }},
+        buses: {{ buses | tojson }},
+        alert_lead_minutes: {{ alert_lead_minutes | int }}
+    };
+
+    // BusPlus Menu (drops down under the bus icon)
+    function openSideMenu() {
+        const drawer = document.getElementById("side-menu-drawer");
+        const backdrop = document.getElementById("side-menu-backdrop");
+        const iconBtn = document.getElementById("btn-busplus-icon");
+        showMenuPage("main");
+        if (drawer) {
+            drawer.classList.add("open");
+            drawer.setAttribute("aria-hidden", "false");
+        }
+        if (backdrop) backdrop.classList.add("open");
+        document.querySelector(".phone-map-app")?.classList.add("menu-open");
+        if (iconBtn) {
+            iconBtn.setAttribute("aria-expanded", "true");
+        }
+    }
+
+    function closeSideMenu() {
+        const drawer = document.getElementById("side-menu-drawer");
+        const backdrop = document.getElementById("side-menu-backdrop");
+        const iconBtn = document.getElementById("btn-busplus-icon");
+        if (drawer) {
+            drawer.classList.remove("open");
+            drawer.setAttribute("aria-hidden", "true");
+        }
+        if (backdrop) backdrop.classList.remove("open");
+        document.querySelector(".phone-map-app")?.classList.remove("menu-open");
+        if (iconBtn) {
+            iconBtn.setAttribute("aria-expanded", "false");
+        }
+    }
+
+    function toggleSideMenu() {
+        const drawer = document.getElementById("side-menu-drawer");
+        if (drawer && drawer.classList.contains("open")) {
+            closeSideMenu();
+        } else {
+            openSideMenu();
+        }
+    }
+
+    // Switches the menu between the main list and the Home / Notification edit pages
+    function showMenuPage(page) {
+        const drawer = document.getElementById("side-menu-drawer");
+        if (!drawer) return;
+        drawer.setAttribute("data-page", page);
+        if (page !== "main" && window.studentTrackerInstance) {
+            window.studentTrackerInstance.syncPreferencesUi();
+        }
+        if (page === "home") {
+            const input = document.getElementById("side-home-address-input");
+            if (input) setTimeout(() => input.focus(), 50);
+        }
+    }
+
+    function saveHomeAddress() {
+        const input = document.getElementById("side-home-address-input");
+        if (window.studentTrackerInstance && input) {
+            window.studentTrackerInstance.setHomeAddress(input.value);
+        }
+        showMenuPage("main");
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        const drawer = document.getElementById("side-menu-drawer");
+        if (!drawer || !drawer.classList.contains("open")) return;
+        if (drawer.getAttribute("data-page") !== "main") {
+            showMenuPage("main");
+        } else {
+            closeSideMenu();
+        }
+    });
+
+    // "Bus schedule": opens the timetable pop-up on the route chosen on the map (if any)
+    function openBusSchedule() {
+        closeSideMenu();
+        BusSchedule.open({ routeId: window.studentTrackerInstance?.routeFilter, audience: AUDIENCE });
+    }
+
+    function changeAlertFrequency(freqVal) {
+        if (window.studentTrackerInstance) {
+            window.studentTrackerInstance.setAlertFrequency(freqVal);
+        }
+    }
+
+    // Student Logout: Clears both backend session and localStorage
+    async function logoutStudent() {
+        try {
+            localStorage.removeItem(`busplus_${AUDIENCE}_id`);
+            localStorage.removeItem(`busplus_${AUDIENCE}_name`);
+        } catch (e) { /* private mode */ }
+        await fetch("/api/auth/logout", { method: "POST" });
+        window.location.href = "/";
+    }
+</script>
+<script src="{{ url_for('static', filename='js/student_tracker.js') }}"></script>
+{% endblock %}
